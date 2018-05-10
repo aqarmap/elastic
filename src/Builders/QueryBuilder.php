@@ -283,6 +283,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         return $this->query;
     }
 
+
     /**
      * Add exist conditions to the main query
      * @param $attribute
@@ -290,6 +291,18 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     private function prepareExistCondition($attribute)
     {
         $this->filter->addMust(new Exists($attribute));
+    }
+
+
+    /**
+     * Add some bool terms to the main query
+     * @param array $term
+     */
+    private function prepareWhereOrCondition($attribute, $value, &$boolOr)
+    {
+        $terms = new Terms();
+        $terms->setTerms($attribute, $value);
+        $boolOr->addShould($terms);
     }
 
     /**
