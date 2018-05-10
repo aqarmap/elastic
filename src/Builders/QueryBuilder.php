@@ -45,6 +45,13 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     protected $whereNotIn = [];
 
     /**
+     * The query whereOr clauses.
+     *
+     * @var array
+     */
+    protected $whereOr = [];
+
+    /**
      * The query in range clauses.
      *
      * @var array
@@ -161,6 +168,18 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * add Where Or to the main filter
+     * @param $attribute
+     * @param $value
+     * @return $this
+     */
+    public function whereOr($terms)
+    {
+        $this->whereOr = $terms;
+        return $this;
+    }
+
+    /**
      * add exist constrains to the main filter
      * @param $attribute
      * @return $this
@@ -198,6 +217,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->notInRange = [];
         $this->exist = [];
         $this->whereTerms = [];
+        $this->whereOr = [];
         $this->match = [];
         $this->query = new BoolQuery();
         $this->filter = new  BoolQuery();
@@ -240,6 +260,13 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         foreach ($this->whereTerms as $term) {
             $this->prepareWhereTermsCondition($term);
         }
+
+        // add Terms Or to main query
+        $boolOr = new BoolQuery();
+        foreach ($this->whereOr as $attribute => $value) {
+            $this->prepareWhereOrCondition($attribute, $value, $boolOr);
+        }
+        $this->filter->addMust($boolOr);
 
         // add exists constrains to the query
         foreach ($this->exist as $exist) {

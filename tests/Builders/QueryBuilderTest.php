@@ -63,11 +63,18 @@ class QueryBuilderTest extends TestCase
         $this->assertInstanceOf(QueryBuilder::class, $repoObj);
     }
 
-    public function test_wereTerm_it_return_obj()
+    public function test_whereTerm_it_return_obj()
     {
         $whereTerm = $this->queryBuilderObj->whereTerm('item', 'value');
 
         $this->assertInstanceOf(QueryBuilder::class, $whereTerm);
+    }
+
+    public function test_whereOr_it_return_obj()
+    {
+        $whereOr = $this->queryBuilderObj->whereOr('terms');
+
+        $this->assertInstanceOf(QueryBuilder::class, $whereOr);
     }
 
     public function test_exist_it_return_obj()
