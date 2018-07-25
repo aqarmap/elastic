@@ -26,6 +26,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     protected $exist = [];
 
     /**
+     * @var array $notExists
+     */
+    protected $notExists = [];
+
+    /**
      * @var array $whereTerms
      */
     protected $whereTerms = [];
@@ -192,6 +197,18 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * add not exists constrains to the main filter
+     * @param $attribute
+     * @return $this
+     */
+    public function notExists($attribute)
+    {
+        $this->notExists[] = $attribute;
+
+        return $this;
+    }
+
+    /**
      * match words to field
      * @param $attribute
      * @param $keyword
@@ -216,6 +233,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->inRange = [];
         $this->notInRange = [];
         $this->exist = [];
+        $this->notExists = [];
         $this->whereTerms = [];
         $this->whereOr = [];
         $this->match = [];
@@ -273,6 +291,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             $this->prepareExistCondition($exist);
         }
 
+        // add exists constrains to the query
+        foreach ($this->notExists as $notExists) {
+            $this->prepareNotExistsCondition($notExists);
+        }
+
         // add matcher queries
         foreach ($this->match as $match) {
             $this->prepareMatchQueries($match);
@@ -293,6 +316,14 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->filter->addMust(new Exists($attribute));
     }
 
+    /**
+     * Add not exists conditions to the main query
+     * @param $attribute
+     */
+    private function prepareNotExistsCondition($attribute)
+    {
+        $this->filter->addMustNot(new Exists($attribute));
+    }
 
     /**
      * Add some bool terms to the main query
