@@ -91,6 +91,12 @@ class QueryBuilderTest extends TestCase
         $this->assertInstanceOf(QueryBuilder::class, $match);
     }
 
+    public function test_simple_query_string_obj()
+    {
+        $simpleQueryString = $this->queryBuilderObj->simpleQueryString('item', 'keyword');
+        $this->assertInstanceOf(QueryBuilder::class, $simpleQueryString);
+    }
+
     public function test_restBuilder_should_return_obj()
     {
         $builderObject = $this->queryBuilderObj->resetBuilder();

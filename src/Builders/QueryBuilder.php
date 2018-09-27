@@ -3,6 +3,7 @@
 namespace ElasticRepository\Builders;
 
 use Elastica\Query\Match;
+use Elastica\Query\SimpleQueryString;
 use ElasticRepository\Contracts\SearchContract;
 use ElasticRepository\Contracts\SearchInRangeContract;
 use Elastica\Query\BoolQuery;
@@ -25,9 +26,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
      */
     protected $exist = [];
 
-    /**
-     * @var array $notExists
-     */
+    /**  @var array $notExists */
     protected $notExists = [];
 
     /**
@@ -72,6 +71,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
 
     /**@var array $match */
     protected $match = [];
+
+    /**@var array $simpleQueryString */
+    protected $simpleQueryString = [];
 
     /**
      * @var BoolQuery
@@ -222,6 +224,19 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * SimpleQueryString to Field
+     * @param $attribute
+     * @param $keyword
+     * @return $this
+     */
+    public function simpleQueryString($attribute, $keyword)
+    {
+        $this->simpleQueryString [] =[$attribute, $keyword];
+
+        return $this;
+    }
+
+    /**
      * Reset repository to it's default
      * @return $this
      */
@@ -237,6 +252,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->whereTerms = [];
         $this->whereOr = [];
         $this->match = [];
+        $this->simpleQueryString = [];
         $this->query = new BoolQuery();
         $this->filter = new  BoolQuery();
 
@@ -299,6 +315,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         // add matcher queries
         foreach ($this->match as $match) {
             $this->prepareMatchQueries($match);
+        }
+
+        // add SimpleQueryString
+        foreach ($this->simpleQueryString as $query) {
+            $this->prepareSimpleQueryString($query);
         }
 
         $this->query->addFilter($this->filter);
@@ -423,5 +444,16 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $matcher = new Match();
         $matcher->setField($attribute, $keyword);
         $this->filter->addFilter($matcher);
+    }
+
+    /**
+     * prepare Simple Query String
+     * @param $query
+     */
+    private function prepareSimpleQueryString($query)
+    {
+        list($attribute, $keyword) = array_pad($query, 2, null);
+        $queryString = new SimpleQueryString($keyword, $attribute);
+        $this->filter->addFilter($queryString);
     }
 }
