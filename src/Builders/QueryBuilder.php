@@ -4,6 +4,7 @@ namespace ElasticRepository\Builders;
 
 use Elastica\Query\Match;
 use Elastica\Query\SimpleQueryString;
+use Elastica\Query\QueryString;
 use ElasticRepository\Contracts\SearchContract;
 use ElasticRepository\Contracts\SearchInRangeContract;
 use Elastica\Query\BoolQuery;
@@ -72,8 +73,15 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     /**@var array $match */
     protected $match = [];
 
-    /**@var array $simpleQueryString */
+    /**
+     * @var array $simpleQueryString
+     */
     protected $simpleQueryString = [];
+
+    /**
+     * @var array $queryString
+     */
+    protected $queryString = [];
 
     /**
      * @var BoolQuery
@@ -237,6 +245,20 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * QueryString to Field
+     * @param array $attributes
+     * @param string $defaultOperator
+     * @param string $keyword
+     * @return $this
+     */
+    public function queryString(array $attributes, string $defaultOperator = null, string $keyword = null)
+    {
+        $this->queryString [] =[$attributes, $defaultOperator, $keyword];
+
+        return $this;
+    }
+
+    /**
      * Reset repository to it's default
      * @return $this
      */
@@ -253,6 +275,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->whereOr = [];
         $this->match = [];
         $this->simpleQueryString = [];
+        $this->queryString = [];
         $this->query = new BoolQuery();
         $this->filter = new  BoolQuery();
 
@@ -320,6 +343,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         // add SimpleQueryString
         foreach ($this->simpleQueryString as $query) {
             $this->prepareSimpleQueryString($query);
+        }
+
+        // add QueryString
+        foreach ($this->queryString as $query) {
+            $this->prepareQueryString($query);
         }
 
         $this->query->addFilter($this->filter);
@@ -454,6 +482,20 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     {
         list($attribute, $keyword) = array_pad($query, 2, null);
         $queryString = new SimpleQueryString($keyword, $attribute);
+        $this->filter->addFilter($queryString);
+    }
+    /**
+     * prepare Simple Query String
+     * @param $query
+     */
+    private function prepareQueryString($query)
+    {
+        list($attributes, $defaultOperator, $keyword) = array_pad($query, 3, null);
+        $queryString = new QueryString($keyword);
+        $queryString
+            ->setFields($attributes)
+            ->setDefaultOperator($defaultOperator)
+        ;
         $this->filter->addFilter($queryString);
     }
 }
