@@ -73,6 +73,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     /**@var array $match */
     protected $match = [];
 
+    /**@var array $mismatch */
+    protected $mismatch = [];
+
     /**
      * @var array $simpleQueryString
      */
@@ -232,6 +235,19 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * mismatch words to field
+     * @param $attribute
+     * @param $keyword
+     * @return $this
+     */
+    public function mismatch($attribute, $keyword)
+    {
+        $this->mismatch[] = [$attribute, $keyword];
+
+        return $this;
+    }
+
+    /**
      * SimpleQueryString to Field
      * @param $attribute
      * @param $keyword
@@ -274,6 +290,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->whereTerms = [];
         $this->whereOr = [];
         $this->match = [];
+        $this->mismatch = [];
         $this->simpleQueryString = [];
         $this->queryString = [];
         $this->query = new BoolQuery();
@@ -338,6 +355,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         // add matcher queries
         foreach ($this->match as $match) {
             $this->prepareMatchQueries($match);
+        }
+
+        // add mismatcher queries
+        foreach ($this->mismatch as $mismatch) {
+            $this->prepareMismatchQueries($mismatch);
         }
 
         // add SimpleQueryString
@@ -472,6 +494,19 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $matcher = new Match();
         $matcher->setField($attribute, $keyword);
         $this->filter->addFilter($matcher);
+    }
+
+    /**
+     * prepare mismatch query
+     * @param $mismatch
+     */
+    private function prepareMismatchQueries($mismatch)
+    {
+        list($attribute, $keyword) = array_pad($mismatch, 2, null);
+
+        $mismatcher = new Match();
+        $mismatcher->setField($attribute, $keyword);
+        $this->filter->addMustNot($mismatcher);
     }
 
     /**
