@@ -12,6 +12,7 @@ use Elastica\Query\Exists;
 use Elastica\Query\Range;
 use Elastica\Query\Term;
 use Elastica\Query\Terms;
+use Elastica\Query\GeoDistance;
 
 class QueryBuilder implements SearchInRangeContract, SearchContract
 {
@@ -73,8 +74,8 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     /**@var array $match */
     protected $match = [];
 
-    /**@var array $mismatch */
-    protected $mismatch = [];
+    /**@var array $geoDistance */
+    protected $geoDistance = [];
 
     /**
      * @var array $simpleQueryString
@@ -235,14 +236,15 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
-     * mismatch words to field
-     * @param $attribute
-     * @param $keyword
+     * Geo distance
+     * @param $key
+     * @param $location
+     * @param $distance
      * @return $this
      */
-    public function mismatch($attribute, $keyword)
+    public function geoDistance($key, $location, $distance)
     {
-        $this->mismatch[] = [$attribute, $keyword];
+        $this->geoDistance[] = [$key, $location, $distance];
 
         return $this;
     }
@@ -290,7 +292,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->whereTerms = [];
         $this->whereOr = [];
         $this->match = [];
-        $this->mismatch = [];
+        $this->geoDistance = [];
         $this->simpleQueryString = [];
         $this->queryString = [];
         $this->query = new BoolQuery();
@@ -357,9 +359,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             $this->prepareMatchQueries($match);
         }
 
-        // add mismatcher queries
-        foreach ($this->mismatch as $mismatch) {
-            $this->prepareMismatchQueries($mismatch);
+        // add geoDistance queries
+        foreach ($this->geoDistance as $geoDistance) {
+            $this->prepareGeoDistanceQueries($geoDistance);
         }
 
         // add SimpleQueryString
@@ -497,16 +499,15 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
-     * prepare mismatch query
-     * @param $mismatch
+     * prepare geoDistance query
+     * @param $geoDistance
      */
-    private function prepareMismatchQueries($mismatch)
+    private function prepareGeoDistanceQueries($geoDistance)
     {
-        list($attribute, $keyword) = array_pad($mismatch, 2, null);
+        list($key, $location, $distance) = array_pad($geoDistance, 3, null);
 
-        $mismatcher = new Match();
-        $mismatcher->setField($attribute, $keyword);
-        $this->filter->addMustNot($mismatcher);
+        $geoDistance = new GeoDistance($key, $location, $distance);
+        $this->filter->addFilter($geoDistance);
     }
 
     /**
