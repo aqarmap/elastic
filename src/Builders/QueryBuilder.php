@@ -12,6 +12,7 @@ use Elastica\Query\Exists;
 use Elastica\Query\Range;
 use Elastica\Query\Term;
 use Elastica\Query\Terms;
+use Elastica\Query\GeoDistance;
 
 class QueryBuilder implements SearchInRangeContract, SearchContract
 {
@@ -75,6 +76,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
 
     /**@var array $mismatch */
     protected $mismatch = [];
+
+    /**@var array $geoDistance */
+    protected $geoDistance = [];
 
     /**
      * @var array $simpleQueryString
@@ -248,6 +252,18 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * Geo distance
+     * @param $key
+     * @param $location
+     * @param $distance
+     * @return $this
+     */
+    public function geoDistance($key, $location, $distance)
+    {
+        $this->geoDistance[] = [$key, $location, $distance];
+        return $this;
+    }
+    /**
      * SimpleQueryString to Field
      * @param $attribute
      * @param $keyword
@@ -291,6 +307,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->whereOr = [];
         $this->match = [];
         $this->mismatch = [];
+        $this->geoDistance = [];
         $this->simpleQueryString = [];
         $this->queryString = [];
         $this->query = new BoolQuery();
@@ -360,6 +377,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         // add mismatcher queries
         foreach ($this->mismatch as $mismatch) {
             $this->prepareMismatchQueries($mismatch);
+        }
+
+        // add geoDistance queries
+        foreach ($this->geoDistance as $geoDistance) {
+            $this->prepareGeoDistanceQueries($geoDistance);
         }
 
         // add SimpleQueryString
@@ -509,6 +531,17 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->filter->addMustNot($mismatcher);
     }
 
+    /**
+     * prepare geoDistance query
+     * @param $geoDistance
+     */
+    private function prepareGeoDistanceQueries($geoDistance)
+    {
+        list($key, $location, $distance) = array_pad($geoDistance, 3, null);
+        $geoDistance = new GeoDistance($key, $location, $distance);
+        $this->filter->addFilter($geoDistance);
+    }
+    
     /**
      * prepare Simple Query String
      * @param $query
