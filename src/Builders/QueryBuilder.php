@@ -12,6 +12,7 @@ use Elastica\Query\Exists;
 use Elastica\Query\Range;
 use Elastica\Query\Term;
 use Elastica\Query\Terms;
+use ElasticRepository\Factory\QueryFactory;
 
 class QueryBuilder implements SearchInRangeContract, SearchContract
 {
@@ -84,6 +85,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     protected $queryString = [];
 
     /**
+     * @var array $boolShould
+     */
+    protected $boolShould = [];
+
+    /**
      * @var BoolQuery
      */
     protected $filter;
@@ -93,10 +99,16 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
      */
     protected $query;
 
+    /**
+     * @var array $boolShould
+     */
+    protected $queryFactory;
+
     public function __construct()
     {
         $this->query  = new BoolQuery();
         $this->filter = new BoolQuery();
+        $this->queryFactory = new QueryFactory();
     }
 
     /**
@@ -127,11 +139,8 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
-     * Add a "Where Not In" clause to the query.
-     *
-     * @param string $attribute
+     * @param $attribute
      * @param null $value
-     * @param float $boost
      * @return $this
      */
     public function whereNotIn($attribute, $value = null)
@@ -183,9 +192,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
-     * add Where Or to the main filter
-     * @param $attribute
-     * @param $value
+     * @param $terms
      * @return $this
      */
     public function whereOr($terms)
@@ -256,6 +263,16 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->queryString [] =[$attributes, $defaultOperator, $keyword];
 
         return $this;
+    }
+
+    /**
+     * @param string $field
+     * @param string $condition
+     * @param array $values
+     */
+    public function boolShould(string $field, string $condition, array $values)
+    {
+        $this->boolShould [] = [$field, $condition, $values];
     }
 
     /**
@@ -350,6 +367,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             $this->prepareQueryString($query);
         }
 
+        // add BoolOr
+        foreach ($this->boolShould as $query) {
+            $this->prepareBoolShould($query);
+        }
+
         $this->query->addFilter($this->filter);
 
         return $this->query;
@@ -375,8 +397,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
-     * Add some bool terms to the main query
-     * @param array $term
+     * @param $attribute
+     * @param $value
+     * @param $boolOr
      */
     private function prepareWhereOrCondition($attribute, $value, &$boolOr)
     {
@@ -497,5 +520,23 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             ->setDefaultOperator($defaultOperator)
         ;
         $this->filter->addFilter($queryString);
+    }
+
+    /**
+     * @param array $query
+     */
+    private function prepareBoolShould(array $query)
+    {
+        $boolOr = new BoolQuery();
+
+        list($field, $condition, $argument) = array_pad($query, 3, null);
+
+        $keyUp = ucfirst($condition);
+        if (method_exists($this->queryFactory, 'set'.$keyUp)) {
+            $condition = call_user_func(array($this->queryFactory, 'set'.$keyUp), $field, $argument);
+            $boolOr->addShould($condition);
+        }
+
+        $this->filter->addShould($boolOr);
     }
 }
