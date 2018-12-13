@@ -606,6 +606,6 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             $boolOr->addShould($condition);
         }
 
-        $this->filter->addShould($boolOr);
+        $this->filter->addMust($boolOr);
     }
 }
