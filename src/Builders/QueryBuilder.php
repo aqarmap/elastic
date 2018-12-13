@@ -327,6 +327,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->geoDistance = [];
         $this->simpleQueryString = [];
         $this->queryString = [];
+        $this->boolShould = [];
         $this->query = new BoolQuery();
         $this->filter = new  BoolQuery();
 
