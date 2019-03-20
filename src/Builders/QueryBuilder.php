@@ -399,7 +399,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
 
         // add geoDistance queries
         foreach ($this->geoDistance as $geoDistance) {
-            $this->prepareGeoDistanceQueries($geoDistance);
+            $this->prepareGeoDistanceQueries($geoDistance, $boolOr);
         }
 
         // add SimpleQueryString
@@ -559,11 +559,12 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
      * prepare geoDistance query
      * @param $geoDistance
      */
-    private function prepareGeoDistanceQueries($geoDistance)
+    private function prepareGeoDistanceQueries($geoDistance, &$boolOr)
     {
         list($key, $location, $distance) = array_pad($geoDistance, 3, null);
         $geoDistance = new GeoDistance($key, $location, $distance);
-        $this->filter->addFilter($geoDistance);
+
+        $boolOr->addShould($geoDistance);
     }
     
     /**
