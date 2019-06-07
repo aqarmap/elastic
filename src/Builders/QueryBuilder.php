@@ -92,6 +92,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     protected $queryString = [];
 
     /**
+     * @var array $queryStringWithFuzzy
+     */
+    protected $queryStringWithFuzzy = [];
+
+    /**
      * @var array $boolShould
      */
     protected $boolShould = [];
@@ -298,6 +303,20 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     }
 
     /**
+     * @param array $attributes
+     * @param string $keyword
+     * @param string|null $defaultOperator
+     * @param int $prefixLength
+     * @return $this
+     */
+    public function queryStringWithFuzzy(array $attributes, string $keyword, string $defaultOperator = null, int $prefixLength = 3)
+    {
+        $this->queryStringWithFuzzy [] =[$attributes, $keyword, $defaultOperator, $prefixLength];
+
+        return $this;
+    }
+
+    /**
      * @param string $field
      * @param string $condition
      * @param array $values
@@ -327,6 +346,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $this->geoDistance = [];
         $this->simpleQueryString = [];
         $this->queryString = [];
+        $this->queryStringWithFuzzy = [];
         $this->boolShould = [];
         $this->query = new BoolQuery();
         $this->filter = new  BoolQuery();
@@ -410,6 +430,11 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         // add QueryString
         foreach ($this->queryString as $query) {
             $this->prepareQueryString($query);
+        }
+
+        // add QueryStringWithFuzzy
+        foreach ($this->queryStringWithFuzzy as $queryStringWithFuzzy) {
+            $this->prepareQueryStringWithFuzzy($queryStringWithFuzzy);
         }
 
         // add BoolOr
@@ -566,7 +591,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
 
         $boolOr->addShould($geoDistance);
     }
-    
+
     /**
      * prepare Simple Query String
      * @param $query
@@ -577,6 +602,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
         $queryString = new SimpleQueryString($keyword, $attribute);
         $this->filter->addFilter($queryString);
     }
+
     /**
      * prepare Simple Query String
      * @param $query
@@ -589,6 +615,23 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
             ->setFields($attributes)
             ->setDefaultOperator($defaultOperator)
         ;
+        $this->filter->addFilter($queryString);
+    }
+
+    /**
+     * @param $query
+     */
+    private function prepareQueryStringWithFuzzy($query)
+    {
+        list($attributes, $keyword, $defaultOperator, $prefixLength) = array_pad($query, 4, null);
+
+        $queryString = new QueryString($keyword.'~');
+        $queryString
+            ->setFields($attributes)
+            ->setDefaultOperator($defaultOperator)
+            ->setFuzzyPrefixLength($prefixLength)
+        ;
+
         $this->filter->addFilter($queryString);
     }
 
