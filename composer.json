@@ -1,9 +1,9 @@
 {
     "name": "aqarmap/elastic",
-    "description": "elastic search active repository package",
+    "description": "ElasticSearch Active Repository Package",
     "type": "package",
     "require": {
-        "ruflin/elastica": "^5.2"
+        "ruflin/elastica": "*"
     },
     "autoload": {
         "psr-4": { "ElasticRepository\\": "src/" }
@@ -12,7 +12,7 @@
         "classmap": [ "tests/"]
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.1"
+        "phpunit/phpunit": "*"
     },
     "license": "MIT",
     "authors": [
