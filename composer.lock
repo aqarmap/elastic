@@ -368,7 +368,7 @@
         },
         {
             "name": "ruflin/elastica",
-            "version": "7.3.2",
+            "version": "8.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ruflin/Elastica.git",
@@ -431,7 +431,7 @@
             ],
             "support": {
                 "issues": "https://github.com/ruflin/Elastica/issues",
-                "source": "https://github.com/ruflin/Elastica/tree/7.3.2"
+                "source": "https://github.com/ruflin/Elastica/tree/8.1.0"
             },
             "time": "2024-03-11T14:11:50+00:00"
         },
