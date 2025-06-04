@@ -2,7 +2,7 @@
 
 namespace ElasticRepository\Builders;
 
-use Elastica\Query\Match;
+use Elastica\Query\MatchQuery;
 use Elastica\Query\SimpleQueryString;
 use Elastica\Query\QueryString;
 use ElasticRepository\Contracts\SearchContract;
@@ -562,7 +562,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     {
         list($attribute, $keyword) = array_pad($match, 2, null);
 
-        $matcher = new Match();
+        $matcher = new MatchQuery();
         $matcher->setField($attribute, $keyword);
         $this->filter->addFilter($matcher);
     }
@@ -575,7 +575,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     {
         list($attribute, $keyword) = array_pad($mismatch, 2, null);
 
-        $mismatcher = new Match();
+        $mismatcher = new MatchQuery();
         $mismatcher->setField($attribute, $keyword);
         $this->filter->addMustNot($mismatcher);
     }
