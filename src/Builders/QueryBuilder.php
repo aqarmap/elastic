@@ -485,10 +485,9 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     private function prepareWhereTermsCondition($term)
     {
         $boolOr = new BoolQuery();
-        $terms = new Terms();
         list($attribute, $value) = array_pad($term, 2, null);
 
-        $terms->setTerms($attribute, $value);
+        $terms = new Terms($attribute, $value);
         $boolOr->addShould($terms);
 
         $this->filter->addMust($boolOr);
@@ -501,8 +500,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     private function prepareWhereCondition($where)
     {
         list($attribute, $value, $boost) = array_pad($where, 3, null);
-        $subFilter = new Term();
-        $subFilter->setTerm($attribute, $value, $boost);
+        $subFilter = new Term([$attribute => ['value' => $value, 'boost' => $boost]]);
         $this->filter->addMust($subFilter);
     }
 
@@ -513,8 +511,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     private function prepareWhereNotCondition($whereNot)
     {
         list($attribute, $value, $boost) = array_pad($whereNot, 3, null);
-        $subFilter = new Term();
-        $subFilter->setTerm($attribute, $value, $boost);
+        $subFilter = new Term([$attribute => ['value' => $value, 'boost' => $boost]]);
         $this->filter->addMustNot($subFilter);
     }
 
@@ -525,8 +522,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
     private function prepareWhereNotInCondition($whereNotIn)
     {
         list($attribute, $value) = array_pad($whereNotIn, 2, null);
-        $subFilter = new Terms();
-        $subFilter->setTerms($attribute, $value);
+        $subFilter = new Terms($attribute, $value);
         $this->filter->addMustNot($subFilter);
     }
 
