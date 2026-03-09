@@ -295,7 +295,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
      * @param string $keyword
      * @return $this
      */
-    public function queryString(array $attributes, string $defaultOperator = null, string $keyword = null, $boost = 10)
+    public function queryString(array $attributes, ?string $defaultOperator = null, ?string $keyword = null, $boost = 10)
     {
         $this->queryString [] =[$attributes, $defaultOperator, $keyword, $boost];
 
@@ -309,7 +309,7 @@ class QueryBuilder implements SearchInRangeContract, SearchContract
      * @param int $prefixLength
      * @return $this
      */
-    public function queryStringWithFuzzy(array $attributes, string $keyword, string $defaultOperator = null, int $prefixLength = 3)
+    public function queryStringWithFuzzy(array $attributes, string $keyword, ?string $defaultOperator = null, int $prefixLength = 3)
     {
         $this->queryStringWithFuzzy [] =[$attributes, $keyword, $defaultOperator, $prefixLength];
 
